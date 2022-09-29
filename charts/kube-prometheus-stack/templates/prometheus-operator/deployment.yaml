@@ -28,10 +28,22 @@ spec:
 {{ toYaml .Values.prometheusOperator.podLabels | indent 8 }}
 {{- end }}
 {{- if .Values.prometheusOperator.podAnnotations }}
+        app_label: prometheus-operator
       annotations:
 {{ toYaml .Values.prometheusOperator.podAnnotations | indent 8 }}
 {{- end }}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app_label
+                operator: In
+                values:
+                - kube-state-metrics
+                - grafana
+          topologyKey: "kubernetes.io/hostname"
     {{- if .Values.prometheusOperator.priorityClassName }}
       priorityClassName: {{ .Values.prometheusOperator.priorityClassName }}
     {{- end }}
